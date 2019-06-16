@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bootstrap Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+  <script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+
+
+</head>
+<body>
+<div>
+    <!--tree view-->
+    <div id="tree"></div>
+</div>
+
+<script>
+
+                    //ajax call to controller
+                    $.ajax({
+                        url: 'controller.php',
+                        type: 'get',
+                        data: { "getFilePaths": ''},
+                        beforeSend: function(){
+
+                        },
+                        complete: function(){
+
+                        },
+                        success: function(response) {
+
+                            //create file array
+                            var files = Array();
+
+                            //fetch each paths from json 
+                            $.each(JSON.parse(response), function (i, p) {
+                                files.push({webkitRelativePath: p});
+                            });
+
+                            var idcount = 0;
+                            var treeJSON = [];
+                            var idmap = {};
+                            
+                            //fetching paths by seperating '/'
+                            //more documentation - https://www.jstree.com/
+                            function add(dirs) {
+                                if (!dirs.length) return "#";
+                                var name = dirs.join("/");
+                                if (name in idmap) return idmap[name];
+                                var dir = dirs.pop();
+                                var parent = add(dirs);
+                                var id = "ajson" + ++idcount;
+                                treeJSON.push({
+                                    id: id,
+                                    parent: parent,
+                                    text: dir
+                                });
+                                return idmap[name] = id;
+                            }
+                            for (var i = 0; i < files.length; ++i) {
+                                var name = files[i].webkitRelativePath;
+                                add(name.split("/"));
+                            }
+                            //console.log(treeJSON);
+                            $('#tree')
+                                .jstree({
+                                'core': {
+                                    'check_callback': true,
+                                        'data': function (node, cb) {
+                                        cb.call(this, treeJSON);
+                                    }
+                                }
+                            });
+                            var tree = $('#tree').jstree(true);
+                            tree.refresh();
+
+                        }
+                    });
+  
+    </script>
+
+</body>
+</html>
